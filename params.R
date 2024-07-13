@@ -1,7 +1,7 @@
 # this scripts holdas the main parameters defining a single run:
 
 # City name
-city <- 'lille' 
+city <- 'aix-en-provence' 
 
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
@@ -25,7 +25,7 @@ concavity <- .4
 grid_param_nn <- 0
 
 # number of nearest neighbours to consider to decide which is the max, 3 or 4 seems good usually
-nn_neighbourhood <- 2
+nn_neighbourhood <- 3
 
 # smoothing_dist <- 1200
 

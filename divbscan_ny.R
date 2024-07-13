@@ -1,6 +1,5 @@
 # divbscan new york
 # depends on the divbscan run for oxford from the divbscan project.
-
 # 
 library(sf)
 library(Btoolkit)
@@ -10,32 +9,45 @@ library(cppRouting)
 library(parallel)
 library(tidyverse)
 library(foreach)
-library(h3jsr)
+# library(h3jsr)
 library(h3)
-library(dbscan)
+# library(dbscan)
 library(leaflet)
 library(reticulate)
 library(RANN)
 
 ####
-reticulate::use_python('/opt/homebrew/bin/python3.11')
 
-source('functions.R')
-source('saved_bboxes.R')
+# how to set up this properly ?
 
-cat('Available cities: '
+# https://rstudio.github.io/reticulate/articles/versions.html
+# https://rstudio.github.io/reticulate/articles/package.html 
+
+# reticulate::py_config()
+
+# current working setup, without renv.
+# Sys.unsetenv(c("RETICULATE_PYTHON","RETICULATE_PYTHON_ENV"))
+# reticulate::use_condaenv("/Users/cenv1069/micromamba/envs/decon-neighb")
+
+# explore feasibility with renv, and providing the micromamba env
+
+source("functions.R")
+
+bbox_of_interest <- rlist::list.load("cities.rds")
+
+cat("Available cities: "
     ,paste(names(bbox_of_interest),collapse = ', ')
-    ,'\n Select one before running \n')
+    ,"\n Select one before running \n")
 
-source('params.R')
-cat('parameters read;\n')
+source("params.R")
+cli::cli_alert_success("parameters read\n")
 # file with amenities
 cur_pbf <- bbox_of_interest[[city]]$src
 
 #  add check for null here
 bbox <- bbox_of_interest[[city]]$bbox
 
-bbox <- c(bbox[['west']],bbox[['south']],bbox[['east']],bbox[['north']])
+bbox <- c(bbox[["west"]],bbox[["south"]],bbox[["east"]],bbox[["north"]])
 
 ny_bb <- bbox |> matrix(ncol = 2,byrow = FALSE)
 ny_bb_sf <- Btoolkit::make_poly(ny_bb)
@@ -46,7 +58,7 @@ ny_bb_sf |> tmap::qtm(fill.alpha=.3)
 centroid <- sf::st_centroid(ny_bb_sf) |> sf::st_coordinates()
 
 source('amenities_key_val.R')
-cat('amenities extracted and concatenated;\n')
+cli::cli_alert_success('amenities extracted and concatenated')
 
 amenities |> Btoolkit::samp_dt(.2) |> tmap::qtm(scale = 1
                                                 ,dots.col = 'black')
@@ -56,7 +68,7 @@ summary(amenities)
 
 # import the network: add network read from '.pbf' file.
 source('network_import.R')
-cat('network set up; \n')
+cli::cli_alert_success('network set up \n')
 
 ###
 ## the set of amenities that was used for london
@@ -70,7 +82,7 @@ s_max <- log(amenity_cat |> length())
 
 #### road network setup
 
-if(!file.exists(network_filename)){
+if(!file.exists(network_filename)) {
   source('sf_net_setup.R')
 } else if (!exists('sf_all')) {
   print('loading network')

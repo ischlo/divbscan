@@ -1,4 +1,5 @@
 # saved bboxes
+library(rlist)
 
 bbox_of_interest = list(
   'ny'= list('bbox'=c('west'=-74.25884
@@ -190,3 +191,5 @@ bbox_of_interest = list(
   
   
 )
+
+rlist::list.save(bbox_of_interest,"cities.rds")

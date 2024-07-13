@@ -24,3 +24,10 @@ mutual_information <- function(cont_tab,ind_prob) {
   
   sum(c(cont_tab*log(mat_1/ind_prob)))
 }
+
+
+#####
+# 
+# show_cities <- function(){
+#   
+# }
