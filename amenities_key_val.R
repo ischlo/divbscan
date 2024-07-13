@@ -60,7 +60,7 @@ if(!is.null(cur_pbf)) {
     
     lapply(output,\(x) sf::st_layers(x))
     
-    layer_name <- 'multipolygons'
+    layer_name <- 'points'
     
     nodes <- lapply(output,\(x) sf::st_read(x, layer = layer_name, quiet = TRUE))
     

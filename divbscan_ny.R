@@ -19,15 +19,16 @@ library(RANN)
 ####
 
 # how to set up this properly ?
-
 # https://rstudio.github.io/reticulate/articles/versions.html
 # https://rstudio.github.io/reticulate/articles/package.html 
 
-# reticulate::py_config()
 
 # current working setup, without renv.
 # Sys.unsetenv(c("RETICULATE_PYTHON","RETICULATE_PYTHON_ENV"))
 # reticulate::use_condaenv("/Users/cenv1069/micromamba/envs/decon-neighb")
+
+# reticulate::use_virtualenv("decon-neighb")
+# reticulate::py_config()
 
 # explore feasibility with renv, and providing the micromamba env
 

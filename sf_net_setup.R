@@ -46,6 +46,8 @@ if(!file.exists(paste0('data/networks/',city,'_all.rds'))) {
   
   # nodes <- sf_nodes[,.(osmid,geom)]
   
+  if(!dir.exists("data/networks")) dir.create("data/networks")
+  
   list('graph'=sf_all
        ,'contracted' = sf_all_ch) |> rlist::list.save(paste0('data/networks/',city,'_all.rds'))
   

@@ -1,7 +1,7 @@
 # this scripts holdas the main parameters defining a single run:
 
 # City name
-city <- 'aix-en-provence' 
+city <- 'monaco' 
 
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
