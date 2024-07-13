@@ -1,0 +1,10 @@
+---
+title: "divbscan - Clustering based on proximity and diversity"
+author: "Ivann Schlosser"
+format: html
+editor: visual
+---
+
+## Divbscan - Clustering based on diversity and proximity
+
+This document will cover the cluistering algorithm divbscan.

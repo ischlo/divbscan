@@ -188,7 +188,11 @@ bbox_of_interest = list(
                           ,'south'= 55.5706
                           ,'north'= 55.9138)
                  ,src = 'data/osm_extracts/central-fed-district-latest.osm.pbf')
-  
+  ,'monaco' = list('bbox'=c('west'= 7.4068
+                            ,'east'= 7.4446
+                            ,'south'= 43.7237
+                            ,'north'= 43.7537)
+                   ,src = 'data/osm_extracts/monaco-latest.osm.pbf')
   
 )
 
