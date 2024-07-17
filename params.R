@@ -6,7 +6,7 @@ city <- 'monaco'
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
 # for small areas, 10 seems good. 
-h3_res <- 9
+h3_res <- 10
 
 # isodistance limit
 
@@ -25,7 +25,7 @@ concavity <- .4
 grid_param_nn <- 0
 
 # number of nearest neighbours to consider to decide which is the max, 3 or 4 seems good usually
-nn_neighbourhood <- 3
+nn_neighbourhood <- 2
 
 # smoothing_dist <- 1200
 

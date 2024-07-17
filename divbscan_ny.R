@@ -34,7 +34,8 @@ library(RANN)
 
 source("functions.R")
 
-bbox_of_interest <- rlist::list.load("cities.rds")
+# bbox_of_interest <- rlist::list.load("cities.rds")
+source("saved_bboxes.R")
 
 cat("Available cities: "
     ,paste(names(bbox_of_interest),collapse = ', ')
@@ -54,7 +55,7 @@ ny_bb <- bbox |> matrix(ncol = 2,byrow = FALSE)
 ny_bb_sf <- Btoolkit::make_poly(ny_bb)
 
 tmap::tmap_mode('view')
-ny_bb_sf |> tmap::qtm(fill.alpha=.3)
+ny_bb_sf |> tmap::qtm(fill.alpha = .3)
 
 centroid <- sf::st_centroid(ny_bb_sf) |> sf::st_coordinates()
 
@@ -243,8 +244,6 @@ if(!file.exists(filename_isochrones)){
   # 
   # isochrones[!sf::st_is_valid(isochrones),] <- isochrones[!sf::st_is_valid(isochrones),] |> sf::st_make_valid()
   
-  
-  
   samp_size <- min(200,nrow(isochrones)*0.02) |> round()
   
   leaflet::leaflet(isochrones |> sf::st_as_sf() |> samp_dt(samp_size)
@@ -277,10 +276,10 @@ if(!file.exists(out_filename)){
   # grouping variable, add as parameter to the function
   by_ <- 'amenity'
   
-  diversity <- entropy_iso(d=amenities
-                           ,iso = isochrones
-                           ,cor_num = 6
-                           # ,by_ = 'amenity'
+  diversity <- Btoolkit::entropy_iso(d=amenities
+                                     ,iso = isochrones
+                                     ,cor_num = 6
+                                     # ,by_ = 'amenity'
   )
   
   summary(diversity)
@@ -341,27 +340,27 @@ cat('grid set up; \n')
 # the neighbours of each hex
 touching <- sf::st_touches(sf_grid,sf_grid)
 
-touching_filt <- lapply(touching,FUN = \(x) if(length(x)>grid_param_nn) x else NA)
+touching_filt <- lapply(touching,FUN = \(x) if (length(x) > grid_param_nn) x else NA)
 
-hist(sf_grid$entropy[sf_grid$entropy>0],breaks = 100)
+hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 
 # min entropy to qualify for local max 
-summary(sf_grid$entropy[sf_grid$entropy>=0])
+summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy>=0])[['Mean']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['Mean']]
 
 min_neighb_entropy
 
 local_max <- parallel::mcmapply(sf_grid$entropy
-                                ,nn_hex(touching_filt,k=1)
+                                ,nn_hex(touching_filt,k = 1)
                                 ,SIMPLIFY = TRUE
                                 ,mc.cores = 6
                                 ,FUN = \(val,neighb) { 
                                   
                                   # print(all(val>=sf_grid$entropy[neighb]))
-                                  if(is.na(val)) FALSE
-                                  else if(any(is.null(neighb),is.na(neighb))) FALSE
-                                  else if (all(val>=sf_grid$entropy[neighb],na.rm = TRUE) && val>=min_neighb_entropy) TRUE
+                                  if (is.na(val)) FALSE
+                                  else if (any(is.null(neighb),is.na(neighb))) FALSE
+                                  else if (all(val >= sf_grid$entropy[neighb],na.rm = TRUE) && val >= min_neighb_entropy) TRUE
                                   else FALSE
                                 })
 
@@ -398,25 +397,29 @@ smoothing_multipoints <- parallel::mclapply(smoothing_isodist
   sf::st_sfc(crs=4326) |> 
   sf::st_as_sf()
 
-int <- sf::st_intersects(sf_grid[local_max,],smoothing_multipoints)
 
 ######
+# int <- sf::st_intersects(sf_grid[local_max,],smoothing_multipoints)
+# 
+#
+# smooth_local_max_ <- parallel::mcmapply(sf_grid$entropy[local_max]
+#                                         ,int
+#                                         ,SIMPLIFY = TRUE
+#                                         ,mc.cores = 6
+#                                         ,FUN = \(val,neighb) { 
+#                                           
+#                                           # print(all(val>=sf_grid$entropy[neighb]))
+#                                           if(is.na(val)) FALSE
+#                                           else if(any(is.null(neighb),is.na(neighb))) FALSE
+#                                           else if (all(val >= sf_grid$entropy[local_max][neighb],na.rm = TRUE) && val>=min_neighb_entropy) TRUE
+#                                           else FALSE
+#                                         })
+# 
+# # some of the local maxes are redundant and we need to recompute them. 
+# summary(smooth_local_max_)
 
-smooth_local_max_ <- parallel::mcmapply(sf_grid$entropy[local_max]
-                                        ,int
-                                        ,SIMPLIFY = TRUE
-                                        ,mc.cores = 6
-                                        ,FUN = \(val,neighb) { 
-                                          
-                                          # print(all(val>=sf_grid$entropy[neighb]))
-                                          if(is.na(val)) FALSE
-                                          else if(any(is.null(neighb),is.na(neighb))) FALSE
-                                          else if (all(val>=sf_grid$entropy[local_max][neighb],na.rm = TRUE) && val>=min_neighb_entropy) TRUE
-                                          else FALSE
-                                        })
-
-# some of the local maxes are redundant and we need to recompute them. 
-summary(smooth_local_max_)
+smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_set_geometry("centroid")
+                                                       ,iso = smoothing_multipoints) |> unique()
 
 # this will be further read by the python script.
 local_max_nodes <- sf_grid$node[local_max][smooth_local_max_]
@@ -432,15 +435,15 @@ reticulate::r_to_py(nx_graph)
 ####
 # 
 # plot_nn <- function(id,k=2){
-#   
+# 
 #   tmap::tmap_mode('view')
-#   sf_grid[nn_hex(touching_filt,k=k)[[which(sf_grid$h3_index==id)]],] |> 
+#   sf_grid[nn_hex(touching_filt,k=k)[[which(sf_grid$h3_index==id)]],] |>
 #     tmap::qtm(fill='red'
 #               ,fill.alpha=.6)
-#   
+# 
 # }
 # 
-## plot an example neighbourhood of hexs
+# # plot an example neighbourhood of hexs
 # plot_nn(id=sf_grid |> samp_dt(1) |> dplyr::pull(h3_index)
 #         ,k=nn_neighbourhood)
 

@@ -21,7 +21,7 @@ shopofinterest <- c("alcohol","appliance","art","bakery","beauty","beverages","b
 
 tourismofinterest <- c("artwork","gallery","hotel","museum")
 
-val_of_interest <- list("amenity"=amenityofinterest,'tourism'=tourismofinterest,'shop'=shopofinterest)
+val_of_interest <- list("amenity" = amenityofinterest,'tourism' = tourismofinterest,'shop' = shopofinterest)
 
 amenities_to_remove <- c("bench","parking_entrance","motorcycle_parking"
                          ,"parking_space","parking","bicycle_parking"
@@ -36,12 +36,18 @@ output_path <- rosmium::extract(
   spinner = FALSE
 )
 
+
+# SOOOOOO GOOOOOOD
+# amenities <- cppRnet::extract_data(output_path)
+
+# amenities[!(value %in% amenities_to_remove),] |> cppRnet::construct_geom()
+
 #  Rosmium 
-if(!is.null(cur_pbf)) {
+if (!is.null(cur_pbf)) {
   
   # amenities_clean_filename <- paste0('data/',city,'_amenities_clean.geojson')
   
-  if(!file.exists(amenities_clean_filename)){
+  if (!file.exists(amenities_clean_filename)) {
     
     ##
     sf::st_layers(cur_pbf)
@@ -68,11 +74,11 @@ if(!is.null(cur_pbf)) {
                      ,keys
                      # ,mc.cores = 3
                      ,SIMPLIFY = TRUE
-                     ,FUN=\(dat,key_) {
+                     ,FUN = \(dat,key_) {
                        
                        dat$other_tags |>
                          stringr::str_split(',') |> 
-                         lapply(FUN=\(x) {
+                         lapply(FUN = \(x) {
                            if (any(stringr::str_detect(x,key_))) x[stringr::str_detect(x,paste0(key_,'\"=>\"'))] |> 
                              stringr::str_split('\"=>\"') |>
                              sapply(FUN = \(x) x[2]) |>
@@ -82,19 +88,19 @@ if(!is.null(cur_pbf)) {
                          )
                      })
     
-    all(sapply(nodes,nrow)==sapply(values,length))
+    all(sapply(nodes,nrow) == sapply(values,length))
     
     amenities <-  mapply(nodes
                          ,values
                          ,SIMPLIFY = FALSE
-                         ,FUN=\(dat,val) dat |> 
+                         ,FUN = \(dat,val) dat |> 
                            dplyr::select(osm_id,name,geometry) |> 
-                           dplyr::mutate(amenity=as.character(val)))
+                           dplyr::mutate(amenity = as.character(val)))
     
     #####
     
     amenities <- lapply(amenities
-                        ,FUN=\(dat)  {
+                        ,FUN = \(dat)  {
                           dat |> 
                             dplyr::filter(!duplicated(osm_id)) |> 
                             dplyr::filter(!(amenity %in% amenities_to_remove)) |> 
@@ -105,7 +111,7 @@ if(!is.null(cur_pbf)) {
     amenities <- dplyr::bind_rows(amenities)
     
     amenities <- amenities |> 
-      dplyr::filter(as.logical(sf::st_intersects(geometry,ny_bb_sf,sparse=FALSE)))
+      dplyr::filter(as.logical(sf::st_intersects(geometry,ny_bb_sf,sparse = FALSE)))
     
     
     #####
