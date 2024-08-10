@@ -1,7 +1,7 @@
 # this scripts holdas the main parameters defining a single run:
 
 # City name
-city <- 'monaco' 
+city <- 'london' 
 
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
@@ -15,7 +15,7 @@ h3_res <- 10
 # 650 - big areas
 # 350-600 - seems intresting 
 
-iso_dist <- 450
+iso_dist <- 700
 
 # concacity of the isodists: the greater, the rounder will be the areas. 
 concavity <- .4
@@ -25,9 +25,12 @@ concavity <- .4
 grid_param_nn <- 0
 
 # number of nearest neighbours to consider to decide which is the max, 3 or 4 seems good usually
-nn_neighbourhood <- 2
+nn_neighbourhood <- 1
 
 # smoothing_dist <- 1200
+
+# how many cores to use for parallel computations
+cores <-  max(6,floor(RcppParallel::defaultNumThreads()*3/4)) # add this into the code where needed
 
 # source('divbscan_ny.R')
 

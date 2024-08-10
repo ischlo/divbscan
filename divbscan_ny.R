@@ -62,7 +62,9 @@ centroid <- sf::st_centroid(ny_bb_sf) |> sf::st_coordinates()
 source('amenities_key_val.R')
 cli::cli_alert_success('amenities extracted and concatenated')
 
-amenities |> Btoolkit::samp_dt(.2) |> tmap::qtm(scale = 1
+samp_size_amen <- min(1000,nrow(amenities))
+
+amenities |> Btoolkit::samp_dt(samp_size_amen) |> tmap::qtm(scale = 1
                                                 ,dots.col = 'black')
 
 nrow(amenities)
@@ -87,10 +89,11 @@ s_max <- log(amenity_cat |> length())
 if(!file.exists(network_filename)) {
   source('sf_net_setup.R')
 } else if (!exists('sf_all')) {
-  print('loading network')
+  cli::cli_alert_info('loading network')
   network_ <- rlist::list.load(paste0('data/networks/',city,'_all.rds'))
   sf_all <- network_$graph
   sf_all_ch <- network_$contracted
+  cli::cli_alert_success("network loaded")
 }
 
 #####
@@ -127,7 +130,7 @@ if(!file.exists(hex_filename)){
       as.data.table()
     
   } else if(h3_res=='custom') {
-    cat('loading custom file london_hex.geojson')
+    cli::cli_alert_info('loading custom file london_hex.geojson')
     # alternatively, use the modified grid from the original work: 
     hexagons <- sf::st_read('data/london_hex.geojson') |> 
       sf::st_transform(4326)
@@ -157,10 +160,12 @@ if(!file.exists(hex_filename)){
   hexagons |> mutate(centroid=sf::st_as_text(centroid)) |> sf::st_write(hex_filename,delete_dsn=TRUE,delete_layer=TRUE)
   
 } else if(!exists('hexagons')){
-  print('reading hexagons from local file')
+  cli::cli_alert_info('reading hexagons from local file')
   hexagons <- sf::st_read(hex_filename) |> as.data.table()
 }
-cat('hexagons set up; \n')
+
+cli::cli_alert_success('hexagons set up')
+
 #####
 
 if(!file.exists(filename_isochrones)){
@@ -170,13 +175,13 @@ if(!file.exists(filename_isochrones)){
   isodist_nodes |> sapply(FUN = length) |> summary()
   
   # function definition
-  to_text_poly <- \(x) {
-    x |> 
-      apply(MARGIN = 1,FUN = \(x) paste0(x,collapse = ' ')) |> 
-      sapply(FUN=\(y) paste0('(',y,')',collapse = ' ')) |> 
-      paste(collapse = ', ') |> 
-      sapply(FUN = \(x) paste0("MULTIPOINT (",x,")"),USE.NAMES = FALSE)
-  }
+  # to_text_poly <- \(x) {
+  #   x |> 
+  #     apply(MARGIN = 1,FUN = \(x) paste0(x,collapse = ' ')) |> 
+  #     sapply(FUN=\(y) paste0('(',y,')',collapse = ' ')) |> 
+  #     paste(collapse = ', ') |> 
+  #     sapply(FUN = \(x) paste0("MULTIPOINT (",x,")"),USE.NAMES = FALSE)
+  # }
 
   # This code makes smooth isodists out of all the points reachable in the network.
   # multipoints_smooth <- parallel::mclapply(isodist_nodes
@@ -198,10 +203,8 @@ if(!file.exists(filename_isochrones)){
   # this code instead of constructing isodistances from individual nodes
   # , clusters them according to which hexagon centroid they reach
   # and assembles isodistances out of hexagons
-  # 
-  #
-  multipoints_ <- parallel::mclapply(isodist_nodes#[1:10000]
-                                     ,mc.cores = 1
+  multipoints_ <- parallel::mclapply(isodist_nodes
+                                     ,mc.cores = cores
                                      ,FUN=\(ns) {
                                        hexagons[match(ns,node),][!is.na(node),geometry] |>
                                          sf::st_union()
@@ -212,7 +215,7 @@ if(!file.exists(filename_isochrones)){
 
   isochrones <- multipoints_ |> sf::st_as_sf()
 
-  # if running the old school way with all points in the isodist.
+  # if running the old school way with all points in the isodist. computationally intensive
   # sf::st_write(multipoints_,dsn=conn,layer = 'multipoints',layer_options = c("OVERWRITE=yes", "LAUNDER=true"))
   # # 
   # isodist_concave_query <- paste0('SELECT ST_AsText(ST_ConcaveHull(geom_wkt,',concavity,',false)) as geom from multipoints;')
@@ -229,9 +232,7 @@ if(!file.exists(filename_isochrones)){
   # summary(sf::st_is_empty(isochrones))
   # 
   # sum(sf::st_geometry_type(isochrones)=='POLYGON')
-  
   # res[(sf::st_geometry_type(isochrones$geometry) %in% c('POINT','LINESTRING')),]|>data.frame()|>sf::st_as_sf(wkt=1,crs=4326)|>tmap::qtm()
-  
   ####
   # 
   # isochrones[(sf::st_geometry_type(isochrones) %in% c('POINT','LINESTRING')),] <-
@@ -244,7 +245,7 @@ if(!file.exists(filename_isochrones)){
   # 
   # isochrones[!sf::st_is_valid(isochrones),] <- isochrones[!sf::st_is_valid(isochrones),] |> sf::st_make_valid()
   
-  samp_size <- min(200,nrow(isochrones)*0.02) |> round()
+  samp_size <- min(200,nrow(isochrones)) |> round()
   
   leaflet::leaflet(isochrones |> sf::st_as_sf() |> samp_dt(samp_size)
   ) |> 
@@ -258,10 +259,10 @@ if(!file.exists(filename_isochrones)){
   
   # isochrone_poly <- isochrone_poly |> sf::st_as_sf() |> mutate(id=1:length(geometry))
   
-  message('Saving isochrones locally')
+  cli::cli_alert_info('Saving isochrones locally')
   rlist::list.save(isochrones,filename_isochrones)
 } else if(!exists('isochrones')){
-  message('Reading local file')
+  cli::cli_alert_info('Reading local file')
   isochrones <- rlist::list.load(filename_isochrones)
 } else print('file exists everywhere')
 
@@ -274,15 +275,21 @@ if(!file.exists(out_filename)){
   source('entropy_iso.R')
   
   # grouping variable, add as parameter to the function
+  # ,in case running the whole process for density in the future,
+  # or any other variable defined by the user.
+
   by_ <- 'amenity'
   
   diversity <- Btoolkit::entropy_iso(d=amenities
                                      ,iso = isochrones
-                                     ,cor_num = 6
+                                     ,cor_num = cores
                                      # ,by_ = 'amenity'
   )
   
+  if(all(is.na(diversity$entropy))) cli::cli_alert_danger("failed to compute entropy")
+  
   summary(diversity)
+  nrow(diversity)
   
   if(!(nrow(diversity)==nrow(hexagons))) warning('Missmatch between hexs and diversity score')
   
@@ -293,7 +300,7 @@ if(!file.exists(out_filename)){
   sf_grid[,summary(entropy)]
   
   # s_max
-  sf_grid[,entropy:=entropy/s_max]
+  sf_grid[,entropy := entropy/s_max]
   
   noise <- runif(nrow(sf_grid))/1000
   
@@ -303,7 +310,7 @@ if(!file.exists(out_filename)){
   
   ##### Reading or saving the data
   
-  message('saving the grid locally')
+  cli::cli_alert_info('saving the grid locally')
   
   rlist::list.save(list('sf_grid'=sf_grid
                         ,'iso_'=isochrones),out_filename)
@@ -313,10 +320,7 @@ if(!file.exists(out_filename)){
 } else if(!exists('sf_grid')){
   message('reading local file with grid')
   level_data <- rlist::list.load(out_filename)
-  #
   sf_grid <- level_data$sf_grid
-  #
-  # isochrones <- level_data$iso_
 }
 
 # if(!file.exists(web_filename) & overwrite){
@@ -332,10 +336,20 @@ if(!file.exists(out_filename)){
 #### Local Max
 sf_grid <- sf_grid |> sf::st_set_geometry('geometry')
 
+# typical size of cell
+area <- sf_grid['geometry'] |> 
+  sf::st_area() |> 
+  units::drop_units() |> 
+  mean()
+
+d <- 2*sqrt(2*area/(3*sqrt(3)))
+d
+
+
 #### keep running from here to compute diversity clusters
 # or switch to dbsccan_local to compute density clusters
 
-cat('grid set up; \n')
+cli::cli_alert_success('grid set up')
 
 # the neighbours of each hex
 touching <- sf::st_touches(sf_grid,sf_grid)
@@ -347,14 +361,14 @@ hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 # min entropy to qualify for local max 
 summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['Mean']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['1st Qu.']]
 
-min_neighb_entropy
+min_neighb_entropy <- 0.01
 
 local_max <- parallel::mcmapply(sf_grid$entropy
                                 ,nn_hex(touching_filt,k = 1)
                                 ,SIMPLIFY = TRUE
-                                ,mc.cores = 6
+                                ,mc.cores = cores
                                 ,FUN = \(val,neighb) { 
                                   
                                   # print(all(val>=sf_grid$entropy[neighb]))
@@ -367,16 +381,12 @@ local_max <- parallel::mcmapply(sf_grid$entropy
 sum(local_max)
 
 ##### constructing neighbourhoods #####
-
-area <- sf_grid['geometry'] |> 
-  sf::st_area() |> 
-  units::drop_units() |> 
-  mean()
-
-d <- 2*sqrt(2*area/(3*sqrt(3)))
-d
-
+##### 
+# this is also the breaking point if further running a largest component analysis
 # When changing the smoothing parameter run from here:
+
+# uncomment only when testing
+# nn_neighbourhood <- 5
 
 smoothing_isodist <- cppRouting::get_isochrone(sf_all
                                                ,from = sf_grid$node[local_max]
@@ -384,7 +394,7 @@ smoothing_isodist <- cppRouting::get_isochrone(sf_all
 
 # when changing concavity run from here
 smoothing_multipoints <- parallel::mclapply(smoothing_isodist
-                                            ,mc.cores = 6
+                                            ,mc.cores = cores
                                             ,FUN=\(ns) {
                                               sf_all$coords[match(ns,osmid),.(x,y)] |> 
                                                 sf::st_as_sf(coords=c(1,2)
@@ -397,29 +407,11 @@ smoothing_multipoints <- parallel::mclapply(smoothing_isodist
   sf::st_sfc(crs=4326) |> 
   sf::st_as_sf()
 
-
 ######
-# int <- sf::st_intersects(sf_grid[local_max,],smoothing_multipoints)
-# 
-#
-# smooth_local_max_ <- parallel::mcmapply(sf_grid$entropy[local_max]
-#                                         ,int
-#                                         ,SIMPLIFY = TRUE
-#                                         ,mc.cores = 6
-#                                         ,FUN = \(val,neighb) { 
-#                                           
-#                                           # print(all(val>=sf_grid$entropy[neighb]))
-#                                           if(is.na(val)) FALSE
-#                                           else if(any(is.null(neighb),is.na(neighb))) FALSE
-#                                           else if (all(val >= sf_grid$entropy[local_max][neighb],na.rm = TRUE) && val>=min_neighb_entropy) TRUE
-#                                           else FALSE
-#                                         })
-# 
-# # some of the local maxes are redundant and we need to recompute them. 
-# summary(smooth_local_max_)
 
-smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_set_geometry("centroid")
-                                                       ,iso = smoothing_multipoints) |> unique()
+smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_set_geometry("centroid") |> sf::st_transform(27700)
+                                                       ,iso = smoothing_multipoints |> sf::st_transform(27700)
+                                                       ) |> unique()
 
 # this will be further read by the python script.
 local_max_nodes <- sf_grid$node[local_max][smooth_local_max_]
@@ -528,14 +520,14 @@ leaf_map <- leaflet::leaflet(sf_grid |> sf::st_as_sf(sf_column_name = 'geometry'
     ,fillOpacity = .6
     ,opacity = 0
     ,group = 'entropy'
-    ,options = pathOptions(pane = "layer")) |> 
-  # size grid
-  leaflet::addPolygons(# sf_grid |> sf::st_as_sf(sf_column_name = 'geometry')
-    fillColor = ~size_col(log1p(size))
-    ,fillOpacity = .8
-    ,opacity = 0
-    ,group = 'size'
     ,options = pathOptions(pane = "layer")) |>
+  # # size grid
+  # leaflet::addPolygons(# sf_grid |> sf::st_as_sf(sf_column_name = 'geometry')
+  #   fillColor = ~size_col(log1p(size))
+  #   ,fillOpacity = .8
+  #   ,opacity = 0
+  #   ,group = 'size'
+  #   ,options = pathOptions(pane = "layer")) |>
   # local maxes
   leaflet::addPolygons(data=sf_grid[local_max,][smooth_local_max_,]
                        ,color = 'red'
@@ -570,25 +562,27 @@ leaf_map <- leaflet::leaflet(sf_grid |> sf::st_as_sf(sf_column_name = 'geometry'
 
 leaf_map
 
-if(!file.exists(map_file)) {
-  # leaf_map
-  print('Saving map locally')
-  rlist::list.save(leaf_map,map_file)
-} else if (file.exists(map_file)) {
-  source('params.R')
-  leaf_map <- rlist::list.load(map_file)
-}
+###
+# 
+# if(!file.exists(map_file)) {
+#   # leaf_map
+#   print('Saving map locally')
+#   rlist::list.save(leaf_map,map_file)
+# } else if (file.exists(map_file)) {
+#   source('params.R')
+#   leaf_map <- rlist::list.load(map_file)
+# }
 
 # leaf_map
 
 #### plotly visualisation
-
-fig <- plotly::plot_ly(x = sf_grid$size, y = sf_grid$entropy) |> 
-  plotly::layout(xaxis = list(type = "log"))
-fig2 <- plotly::subplot(
-  fig |> plotly::add_markers(alpha = 0.4)
-  # fig |> plotly::add_histogram2d()
-)
-
-fig2
- 
+# 
+# fig <- plotly::plot_ly(x = sf_grid$size, y = sf_grid$entropy) |> 
+#   plotly::layout(xaxis = list(type = "log"))
+# fig2 <- plotly::subplot(
+#   fig |> plotly::add_markers(alpha = 0.4)
+#   # fig |> plotly::add_histogram2d()
+# )
+# 
+# fig2
+#  
