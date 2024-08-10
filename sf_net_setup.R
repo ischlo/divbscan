@@ -28,18 +28,18 @@ if(!file.exists(paste0('data/networks/',city,'_all.rds'))) {
   
   ### make sure a from and to column is present
   if(all(c('u','v') %in% colnames(sf_edges))) {
-    sf_edges[,c('from','to'):=list(as.character(u),as.character(v))]
+    sf_edges[,c('from','to') := list(as.character(u),as.character(v))]
   }
   
-  if(!('osmid'%in%colnames(nodes))){
-    sf_nodes[,'osmid':=id]
+  if(!('osmid' %in% colnames(sf_nodes))){
+    sf_nodes[,'osmid' := id]
   }
   
-  if(!all(c('x','y')%in% colnames(sf_nodes))){
-    sf_nodes[,c('x','y'):=as.data.frame(sf::st_coordinates(geom))]
+  if(!all(c('x','y') %in% colnames(sf_nodes))){
+    sf_nodes[,c('x','y') := as.data.frame(sf::st_coordinates(geom))]
   }
 
-  sf_all <- make_cppr_net(edges=sf_edges
+  sf_all <- make_cppr_net(edges = sf_edges
                           ,nodes = sf_nodes)
 
   sf_all_ch <- sf_all |> cppRouting::cpp_contract()

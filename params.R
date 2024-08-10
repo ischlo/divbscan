@@ -1,7 +1,7 @@
 # this scripts holdas the main parameters defining a single run:
 
 # City name
-city <- 'monaco' 
+city <- 'london' 
 
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
@@ -28,6 +28,9 @@ grid_param_nn <- 0
 nn_neighbourhood <- 3
 
 # smoothing_dist <- 1200
+
+# number of cores to use.
+# cor_num <- 1
 
 # source('divbscan_ny.R')
 
@@ -57,7 +60,7 @@ filenames <- list(hex_filename
                   ,filename_isochrones
                   ,out_filename
                   ,amenities_clean_filename
-                  ,web_filename
+                  # ,web_filename
                   ,map_file
                   )
 

@@ -471,7 +471,7 @@ neighb <- lapply(net_vor,FUN = \(nodes) {
 neighb |> sf::st_is_valid() |> summary()
 neighb |> sf::st_is_empty() |> summary()
 
-
+# 
 # sf::st_write(obj=neighb
 #              ,dsn = web_filename
 #              ,layer = 'neighbourhood'
@@ -538,7 +538,7 @@ leaf_map <- leaflet::leaflet(sf_grid |> sf::st_as_sf(sf_column_name = 'geometry'
                        ,color = 'red'
                        ,fillOpacity = 0
                        ,opacity = 1
-                       ,weight = 3
+                       ,weight = 2
                        ,popup =~paste0('Entropy: ',round(entropy,3)
                                        ,' Size: ',round(size),'\t'
                                        ,'ID: ',h3_index)
@@ -551,7 +551,7 @@ leaf_map <- leaflet::leaflet(sf_grid |> sf::st_as_sf(sf_column_name = 'geometry'
                        ,fillColor = 'darkblue'
                        ,opacity = 1
                        ,color = 'black'
-                       ,weight = 2
+                       ,weight = 3
                        ,group = 'boundaries'
                        ,options = pathOptions(pane = "intermediate")) |>
   # layer controls
