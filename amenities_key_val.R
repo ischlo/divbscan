@@ -104,7 +104,7 @@ if (!is.null(cur_pbf)) {
                           dat |> 
                             dplyr::filter(!duplicated(osm_id)) |> 
                             dplyr::filter(!(amenity %in% amenities_to_remove)) |> 
-                            # dplyr::filter(amenity %in% unlist(val_of_interest,use.names = FALSE)) |> 
+                            # dplyr::filter(amenity %in% unlist(val_of_interest,use.names = FALSE)) |>
                             tidyr::drop_na(amenity)
                         })
     
@@ -113,18 +113,20 @@ if (!is.null(cur_pbf)) {
     amenities <- amenities |> 
       dplyr::filter(as.logical(sf::st_intersects(geometry,ny_bb_sf,sparse = FALSE)))
     
-    
     #####
     
     amenity_cat <- amenities |> pull(amenity) |> unique()
     
-    if(length(amenity_cat)>300) rlang::warn(message = 'Likely combined types of amenities'
-                                            ,class = 'warning')
+    if (length(amenity_cat) > 300) rlang::warn(message = 'Likely combined types of amenities'
+                                               ,class = 'warning')
     
-    amenities |> sf::st_write(dsn=amenities_clean_filename,delete_dsn=TRUE,delete_layer=TRUE)
+    amenities |> sf::st_write(dsn = amenities_clean_filename,delete_dsn = TRUE,delete_layer = TRUE)
     
     
-  } else amenities <- sf::st_read(amenities_clean_filename)
+  } else { 
+    amenities <- sf::st_read(amenities_clean_filename) |> 
+      sf::st_transform(4326) # in case data is in something other than WGS84
+  }
 }
 
 ###### code using osmdata but it's not stable
