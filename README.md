@@ -2,7 +2,10 @@
 Ivann Schlosser
 
 This repo contains the code of a clustering algorithm for urban
-analytics.
+analytics, specifically to identify neighbourhoods in a city. It was
+developed and tested in London with GPS mobility data of a sample of
+residents coming from an industry partner, *Locomizer Ltd.* and open
+source data from *OSM*.
 
 ## Setup
 
@@ -10,50 +13,53 @@ You will need a C/C++ compiler, which comes with the developer tools of
 R. It has a few dependencies and calls python from within `R` with the
 [`reticulate`](https://rstudio.github.io/reticulate/) package.
 
-### Python configuration
+### External dependencies
 
-To configure the python virtual environment, the
-[`micromamba`](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html)
-tool is used, however, other tools should also work as long as the
-dependencies are installed. Those are mentioned in the `env.yaml` file.
-
-### Initiate the vitrual environment
-
-To set up a micromamba virtual environment, run the following command in
-a terminal:
+The workflow relies on the [osmium](https://osmcode.org/osmium-tool/)
+library, please install it separately. If using mac, you can install it
+from homebrew by running:
 
 ``` bash
-micromamba create -f env.yaml
+
+brew install libosmium
 ```
 
-This will install the python dependencies of the project. Now you need
-to link the python environment with R. To do so, run the following:
+### With Renv
 
-In the terminal:
-
-``` bash
-micromamba activate decon-neighb
-which python
-```
-
-Copy the output of this command, which should look something like:
-`~/micromamba/envs/decon-neighb`.
-
-Now in R, run the following by replacing ENV_PATH with the output of the
-previous command:
+This project uses
+[`renv`](https://rstudio.github.io/renv/articles/renv.html) to setup an
+R and python environments. Once the repo is cloned, open it and start
+the environment with the following command:
 
 ``` r
-Sys.unsetenv(c("RETICULATE_PYTHON","RETICULATE_PYTHON_ENV"))
-reticulate::use_condaenv("ENV_PATH")
+renv::activate()
 ```
 
-This will override the default configuration of reticulate and point it
-at the right python virtual environment.
+This should download all the R and python packages required to run this
+algorithm.
 
-### R dependencies
-
-The R dependencies are managed with the `renv` package, but this can be
-bypassed if all the packages are installed manually.
+<!-- ### Python configuration -->
+<!-- To configure the python virtual environment, the [`micromamba`](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html) tool is used, however, other tools should also work as long as the dependencies are installed. Those are mentioned in the `env.yaml` file. -->
+<!-- ### Initiate the vitrual environment -->
+<!-- To set up a micromamba virtual environment, run the following command in a terminal: -->
+<!-- ```{bash} -->
+<!-- micromamba create -f env.yaml -->
+<!-- ``` -->
+<!-- This will install the python dependencies of the project. Now you need to link the python environment with R. To do so, run the following:  -->
+<!-- In the terminal:  -->
+<!-- ```{bash} -->
+<!-- micromamba activate decon-neighb -->
+<!-- which python -->
+<!-- ``` -->
+<!-- Copy the output of this command, which should look something like: `~/micromamba/envs/decon-neighb`. -->
+<!-- Now in R, run the following by replacing ENV_PATH with the output of the previous command:  -->
+<!-- ```{r} -->
+<!-- Sys.unsetenv(c("RETICULATE_PYTHON","RETICULATE_PYTHON_ENV")) -->
+<!-- reticulate::use_condaenv("ENV_PATH") -->
+<!-- ``` -->
+<!-- This will override the default configuration of reticulate and point it at the right python virtual environment.  -->
+<!-- ### R dependencies -->
+<!-- The R dependencies are managed with the `renv` package, but this can be bypassed if all the packages are installed manually. -->
 
 ## Running
 
@@ -86,11 +92,6 @@ initially.
 
 Open the `params.R` script and in the first line of code assign to the
 `city` variable whichever city you chose. Default is `aix-en-provence`.
-
-### Other dependencies
-
-The workflow relies on the [osmium](https://osmcode.org/osmium-tool/)
-library, please install it separately.
 
 ## Simulation
 
