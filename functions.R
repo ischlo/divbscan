@@ -6,7 +6,7 @@ no_na <- function(x) {
 
 nn_hex <- \(neighbors, k = 1) {
   # this function in the future could be replace by network voronoi style one
-  if(k%in% c(0,1)){ return(neighbors) }
+  if(k %in% c(0,1)){ return(neighbors) }
   for(i in 2:k){
     neighbors <- lapply(neighbors,FUN = \(x) touching_filt[x] |> unlist() |> unique() |> no_na())
   }
@@ -16,15 +16,32 @@ nn_hex <- \(neighbors, k = 1) {
 #####
 mutual_information <- function(cont_tab,ind_prob) {
   
-  ind_prob[which(cont_tab==0,arr.ind = TRUE)] <- 1
+  ind_prob[which(cont_tab == 0,arr.ind = TRUE)] <- 1
   
   mat_1 <- cont_tab
   
-  mat_1[which(cont_tab==0,arr.ind = TRUE)] <- 1
+  mat_1[which(cont_tab == 0,arr.ind = TRUE)] <- 1
   
   sum(c(cont_tab*log(mat_1/ind_prob)))
+
 }
 
+
+#### Plotting support
+
+library(leaflet.providers)
+
+provider_tile <- providers$CartoDB.Positron
+
+plot_base_map <- function(data,zoom_ = 10, centroid_ = centroid){
+  leaflet::leaflet(data
+                   ,options = leafletOptions(zoomControl = FALSE)) |>
+    addProviderTiles(provider = provider_tile) |> 
+    addScaleBar(position = 'bottomleft',options = list(maxWidth = 500)) |> 
+    setView(lat = centroid_[2]
+            ,lng = centroid_[1]
+            ,zoom = zoom_)
+}
 
 #####
 # 

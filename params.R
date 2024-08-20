@@ -6,7 +6,7 @@ city <- 'london'
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
 # for small areas, 10 seems good. 
-h3_res <- 10
+h3_res <- 9
 
 # isodistance limit
 
@@ -15,7 +15,7 @@ h3_res <- 10
 # 650 - big areas
 # 350-600 - seems intresting 
 
-iso_dist <- 700
+iso_dist <- 450
 
 # concacity of the isodists: the greater, the rounder will be the areas. 
 concavity <- .4
@@ -25,7 +25,7 @@ concavity <- .4
 grid_param_nn <- 0
 
 # number of nearest neighbours to consider to decide which is the max, 3 or 4 seems good usually
-nn_neighbourhood <- 1
+nn_neighbourhood <- 3
 
 # smoothing_dist <- 1200
 
@@ -34,7 +34,7 @@ cores <-  max(6,floor(RcppParallel::defaultNumThreads()*3/4)) # add this into th
 
 # source('divbscan_ny.R')
 
-overwrite <- FALSE
+overwrite <- TRUE
 
 ######## FILENAMES to which things are saved
 
@@ -55,14 +55,15 @@ map_file <- paste0('data/leaflet_map_',city,'_',h3_res,'.rds')
 
 #######
 
-filenames <- list(hex_filename
-                  ,network_filename
-                  ,filename_isochrones
-                  ,out_filename
-                  ,amenities_clean_filename
-                  ,web_filename
-                  ,map_file
-                  )
+filenames <- list(
+  # hex_filename
+  # ,network_filename
+  # ,filename_isochrones
+  out_filename
+  # ,amenities_clean_filename
+  ,web_filename
+  ,map_file
+)
 
 if(overwrite) {
   confirmation <- readline(prompt = 'Overwrite is set to TRUE, \n This will erase all files associated to a city. [y/n]: ') |> 
