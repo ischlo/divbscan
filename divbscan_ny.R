@@ -151,7 +151,9 @@ if(!file.exists(hex_filename)){
   
   # nrow(hexagons)
   print('Saving hexagons locally')
-  hexagons |> mutate(centroid = sf::st_as_text(centroid)) |> sf::st_write(hex_filename,delete_dsn = TRUE,delete_layer = TRUE)
+  hexagons |> 
+    dplyr::mutate(centroid = sf::st_as_text(centroid)) |> 
+    sf::st_write(hex_filename,delete_dsn = TRUE,delete_layer = TRUE)
   
 } else if (!exists('hexagons')) {
   cli::cli_alert_info('reading hexagons from local file')
