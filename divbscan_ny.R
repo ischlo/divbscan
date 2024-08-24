@@ -39,7 +39,9 @@ cat("Available cities: "
     ,"\n Select one before running \n")
 
 source("params.R")
+
 cli::cli_alert_success("parameters read\n")
+
 # file with amenities
 cur_pbf <- bbox_of_interest[[city]]$src
 
@@ -48,13 +50,10 @@ bbox <- bbox_of_interest[[city]]$bbox
 
 bbox <- c(bbox[["west"]],bbox[["south"]],bbox[["east"]],bbox[["north"]])
 
-# ny_bb <- bbox |> matrix(ncol = 2,byrow = FALSE)
+ny_bb <- bbox |> matrix(ncol = 2,byrow = FALSE)
 # ny_bb_sf <- Btoolkit::make_poly(ny_bb)
 
 ny_bb_sf <- osmdata::getbb("Greater London",format_out = "sf_polygon")
-
-# tmap::tmap_mode('view')
-# ny_bb_sf |> tmap::qtm(fill.alpha = .3)
 
 centroid <- sf::st_centroid(ny_bb_sf) |> sf::st_coordinates()
 
@@ -406,7 +405,7 @@ smoothing_multipoints <- parallel::mclapply(smoothing_isodist
 
 ######
 
-smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_drop_geometry() |> sf::st_as_sf(wkt = "centroid",crs = 4326) |> sf::st_transform(27700)
+smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_drop_geometry() |> sf::st_as_sf(crs = 4326) |> sf::st_transform(27700)
                                                        ,iso = smoothing_multipoints |> sf::st_transform(27700)
                                                        ) |> unique()
 
@@ -509,7 +508,7 @@ neighb_ <- sf::st_intersection(neighb,ny_bb_sf)
 
 leaf_map <- sf_grid_ |> 
   sf::st_as_sf(sf_column_name = 'geometry') |> 
-  plot_base_map(zoom_ = 11) |> 
+  plot_base_map(zoom_ = 13) |> 
   addMapPane("max", zIndex = 430) |> 
   addMapPane("layer", zIndex = 420) |> 
   addMapPane('intermediate',zIndex = 425) |> 
@@ -518,7 +517,7 @@ leaf_map <- sf_grid_ |>
     fillColor = ~entropy_col(entropy)
     ,fillOpacity = .6
     ,opacity = 0
-    ,group = 'entropy'
+    ,group = 'diversity'
     ,options = pathOptions(pane = "layer")) |>
   # # size grid
   leaflet::addPolygons(
@@ -533,7 +532,7 @@ leaf_map <- sf_grid_ |>
                        ,fillOpacity = 0
                        ,opacity = 1
                        ,weight = 3
-                       ,popup =~paste0('Entropy: ',round(entropy,3)
+                       ,popup =~paste0('Diversity: ',round(entropy,3)
                                        ,' Size: ',round(size),'\t'
                                        ,'ID: ',h3_index)
                        ,group = 'local_max'
@@ -550,7 +549,7 @@ leaf_map <- sf_grid_ |>
                        ,options = pathOptions(pane = "intermediate")) |>
   # layer controls
   addLayersControl(
-    baseGroups = c("size", "entropy"),
+    baseGroups = c("diversity","size"),
     overlayGroups = c("local_max","boundaries"),
     options = layersControlOptions(collapsed = TRUE)
   ) 
@@ -558,15 +557,15 @@ leaf_map <- sf_grid_ |>
 leaf_map
 
 ###
-# 
-# if(!file.exists(map_file)) {
-#   # leaf_map
-#   print('Saving map locally')
-#   rlist::list.save(leaf_map,map_file)
-# } else if (file.exists(map_file)) {
-#   source('params.R')
-#   leaf_map <- rlist::list.load(map_file)
-# }
+
+if(!file.exists(map_file)) {
+  # leaf_map
+  print('Saving map locally')
+  rlist::list.save(leaf_map,map_file)
+} else if (file.exists(map_file)) {
+  source('params.R')
+  leaf_map <- rlist::list.load(map_file)
+}
 
 # leaf_map
 
