@@ -309,8 +309,8 @@ if(!file.exists(out_filename)){
   
   cli::cli_alert_info('saving the grid locally')
   
-  rlist::list.save(list('sf_grid'=sf_grid
-                        ,'iso_'=isochrones),out_filename)
+  rlist::list.save(list('sf_grid' = sf_grid
+                        ,'iso_' = isochrones),out_filename)
   
   
   
@@ -359,7 +359,7 @@ hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 # min entropy to qualify for local max 
 summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['3rd Qu.']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['Mean']]
 
 # min_neighb_entropy <- 0.01
 
@@ -405,12 +405,24 @@ smoothing_multipoints <- parallel::mclapply(smoothing_isodist
 
 ######
 
-smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> 
-                                                         # sf::st_drop_geometry() |> 
-                                                         # sf::st_as_sf(crs = 4326) |> 
-                                                         sf::st_transform(27700)
-                                                       ,iso = smoothing_multipoints |> sf::st_transform(27700)
-                                                       ) |> unique()
+int <- sf::st_intersects(sf_grid[local_max,],smoothing_multipoints)
+
+smooth_local_max_ <- parallel::mcmapply(sf_grid$entropy[local_max]
+                                        ,int
+                                        ,SIMPLIFY = TRUE
+                                        ,mc.cores = 6
+                                        ,FUN = \(val,neighb) {
+
+                                          # print(all(val>=sf_grid$entropy[neighb]))
+                                          if(is.na(val)) FALSE
+                                          else if(any(is.null(neighb),is.na(neighb))) FALSE
+                                          else if (all(val >= sf_grid$entropy[local_max][neighb],na.rm = TRUE) && val >= min_neighb_entropy) TRUE
+                                          else FALSE
+                                        })
+
+# some of the local maxes are redundant and we need to recompute them.
+summary(smooth_local_max_)
+
 
 # this will be further read by the python script.
 local_max_nodes <- sf_grid$node[local_max][smooth_local_max_]
