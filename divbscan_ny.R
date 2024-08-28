@@ -288,7 +288,7 @@ if(!file.exists(out_filename)){
   summary(diversity)
   nrow(diversity)
   
-  if(!(nrow(diversity)==nrow(hexagons))) warning('Missmatch between hexs and diversity score')
+  if(!(nrow(diversity) == nrow(hexagons))) warning('Missmatch between hexs and diversity score')
   
   # diversity$entropy
   
@@ -359,7 +359,7 @@ hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 # min entropy to qualify for local max 
 summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['Mean']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['3rd Qu.']]
 
 # min_neighb_entropy <- 0.01
 
