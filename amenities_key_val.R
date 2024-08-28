@@ -43,6 +43,7 @@ if(!is.null(cur_pbf)) {
   
   if(!file.exists(amenities_clean_filename)){
     
+    
     ##
     sf::st_layers(cur_pbf)
     
@@ -118,7 +119,7 @@ if(!is.null(cur_pbf)) {
     amenities |> sf::st_write(dsn=amenities_clean_filename,delete_dsn=TRUE,delete_layer=TRUE)
     
     
-  } else amenities <- sf::st_read(amenities_clean_filename)
+  } else amenities <- sf::st_read(amenities_clean_filename) |> sf::st_transform(4326)
 }
 
 ###### code using osmdata but it's not stable

@@ -123,7 +123,7 @@ if(!file.exists(hex_filename)){
     hexagons <- hexagons_ |> mutate(centroid = sf::st_centroid(geometry)) |> 
       as.data.table()
     
-  } else if(h3_res=='custom') {
+  } else if(h3_res == 'custom') {
     cli::cli_alert_info('loading custom file london_hex.geojson')
     # alternatively, use the modified grid from the original work: 
     hexagons <- sf::st_read('data/london_hex.geojson') |> 
@@ -277,7 +277,7 @@ if(!file.exists(out_filename)){
 
   by_ <- 'amenity'
   
-  diversity <- Btoolkit::entropy_iso(d=amenities
+  diversity <- Btoolkit::entropy_iso(d = amenities
                                      ,iso = isochrones
                                      ,cor_num = cores
                                      # ,by_ = 'amenity'
@@ -331,7 +331,8 @@ if(!file.exists(out_filename)){
 
 
 #### Local Max
-sf_grid <- sf_grid |> sf::st_set_geometry('geometry')
+sf_grid <- sf_grid |> 
+  sf::st_set_geometry('geometry')
 
 # typical size of cell
 area <- sf_grid['geometry'] |> 
@@ -358,9 +359,9 @@ hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 # min entropy to qualify for local max 
 summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['1st Qu.']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['Mean']]
 
-min_neighb_entropy <- 0.01
+# min_neighb_entropy <- 0.01
 
 local_max <- parallel::mcmapply(sf_grid$entropy
                                 ,nn_hex(touching_filt,k = 1)
@@ -382,8 +383,6 @@ sum(local_max)
 # this is also the breaking point if further running a largest component analysis
 # When changing the smoothing parameter run from here:
 
-# uncomment only when testing
-# nn_neighbourhood <- 5
 
 smoothing_isodist <- cppRouting::get_isochrone(sf_all
                                                ,from = sf_grid$node[local_max]
@@ -406,7 +405,10 @@ smoothing_multipoints <- parallel::mclapply(smoothing_isodist
 
 ######
 
-smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_drop_geometry() |> sf::st_as_sf(wkt = "centroid",crs = 4326) |> sf::st_transform(27700)
+smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> 
+                                                         # sf::st_drop_geometry() |> 
+                                                         # sf::st_as_sf(crs = 4326) |> 
+                                                         sf::st_transform(27700)
                                                        ,iso = smoothing_multipoints |> sf::st_transform(27700)
                                                        ) |> unique()
 
@@ -507,9 +509,16 @@ sf_grid_ <- sf_grid |> dplyr::filter(as.logical(sf::st_intersects(geometry,ny_bb
 
 neighb_ <- sf::st_intersection(neighb,ny_bb_sf)
 
+nrow(neighb_)
+
+# library(leaflet.providers)
+
+provider_tile <- providers$CartoDB.Positron
+
 leaf_map <- sf_grid_ |> 
   sf::st_as_sf(sf_column_name = 'geometry') |> 
-  plot_base_map(zoom_ = 11) |> 
+  plot_base_map(zoom_ = 11) |>
+  # leaflet() |> 
   addMapPane("max", zIndex = 430) |> 
   addMapPane("layer", zIndex = 420) |> 
   addMapPane('intermediate',zIndex = 425) |> 
@@ -540,7 +549,7 @@ leaf_map <- sf_grid_ |>
                        ,options = pathOptions(pane = "max")
   ) |>
   # neighbourhood boundaries
-  leaflet::addPolygons(data=neighb_
+  leaflet::addPolygons(data = neighb_
                        ,fillOpacity = 0
                        ,fillColor = 'darkblue'
                        ,opacity = 1
