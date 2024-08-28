@@ -359,9 +359,9 @@ hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 # min entropy to qualify for local max 
 summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['1st Qu.']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['3rd Qu.']]
 
-min_neighb_entropy <- 0.01
+# min_neighb_entropy <- 0.01
 
 local_max <- parallel::mcmapply(sf_grid$entropy
                                 ,nn_hex(touching_filt,k = 1)
@@ -382,9 +382,6 @@ sum(local_max)
 ##### 
 # this is also the breaking point if further running a largest component analysis
 # When changing the smoothing parameter run from here:
-
-# uncomment only when testing
-# nn_neighbourhood <- 5
 
 smoothing_isodist <- cppRouting::get_isochrone(sf_all
                                                ,from = sf_grid$node[local_max]
@@ -407,7 +404,10 @@ smoothing_multipoints <- parallel::mclapply(smoothing_isodist
 
 ######
 
-smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> sf::st_drop_geometry() |> sf::st_as_sf(crs = 4326) |> sf::st_transform(27700)
+smooth_local_max_ <- Btoolkit::divbscan$neighbourhoods(data = sf_grid[local_max,] |> 
+                                                         # sf::st_drop_geometry() |> 
+                                                         # sf::st_as_sf(crs = 4326) |> 
+                                                         sf::st_transform(27700)
                                                        ,iso = smoothing_multipoints |> sf::st_transform(27700)
                                                        ) |> unique()
 
@@ -461,7 +461,6 @@ neighb <- lapply(net_vor,FUN = \(nodes) {
 
 neighb |> sf::st_is_valid() |> summary()
 neighb |> sf::st_is_empty() |> summary()
-
 
 # sf::st_write(obj=neighb
 #              ,dsn = web_filename

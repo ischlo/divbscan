@@ -25,7 +25,7 @@ concavity <- .4
 grid_param_nn <- 0
 
 # number of nearest neighbours to consider to decide which is the max, 3 or 4 seems good usually
-nn_neighbourhood <- 4
+nn_neighbourhood <- 3
 
 # how many cores to use for parallel computations
 cores <-  max(6,floor(RcppParallel::defaultNumThreads()*3/4)) # add this into the code where needed
