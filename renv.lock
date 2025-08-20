@@ -14,18 +14,6 @@
     "Name": "/Users/cenv1069/.virtualenvs/decon-neighb"
   },
   "Packages": {
-    "BSDA": {
-      "Package": "BSDA",
-      "Version": "1.2.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "e1071",
-        "lattice"
-      ],
-      "Hash": "496e20f2fffa9f785ecfaa35429e5ad6"
-    },
     "Btoolkit": {
       "Package": "Btoolkit",
       "Version": "0.1.0",
@@ -549,6 +537,29 @@
         "R"
       ],
       "Hash": "5a295d7d963cc5035284dcdbaf334f4e"
+    },
+    "cppRosm": {
+      "Package": "cppRosm",
+      "Version": "1.0.0",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "cppRosm",
+      "RemoteUsername": "ischlo",
+      "RemotePkgRef": "ischlo/cppRosm",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "667141924d8943c6c8409c307cf55b4086ee3b83",
+      "Requirements": [
+        "Rcpp",
+        "cli",
+        "data.table",
+        "dplyr",
+        "glue",
+        "parallel",
+        "processx",
+        "sf"
+      ],
+      "Hash": "b3af5b22ea12b91672d8d6ea3644ad8c"
     },
     "cppRouting": {
       "Package": "cppRouting",

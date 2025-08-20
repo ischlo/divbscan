@@ -1,7 +1,7 @@
 # this scripts holdas the main parameters defining a single run:
 
 # City name
-city <- 'london' 
+city <- 'montreal' 
 
 # resolution of the h3 grid
 # for very large areas, choose a smaller values, around 9 for computational capacity reasons. 
@@ -38,7 +38,7 @@ overwrite <- FALSE
 
 ######## FILENAMES to which things are saved
 
-network_filename <- paste0('data/networks/',city,'_all.rds')
+network_filename <- paste0('data/networks/',city,'_')
 
 hex_filename <- paste('data/hexagons',city,h3_res,'.geojson',sep = '_')
 

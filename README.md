@@ -86,12 +86,14 @@ their bbox and associated `.pbf` files are located. A new city can be
 added manually quite easily, this will be covered in another section.
 
 To visualise the available cities, run
-`names(rlist::list.load("cities.rds"))`. Select the one yyou want, it is
+`names(rlist::list.load("cities.rds"))`. Select the one you want, it is
 recommended to start with a smaller one to see that everything works
 initially.
 
 Open the `params.R` script and in the first line of code assign to the
 `city` variable whichever city you chose. Default is `aix-en-provence`.
+
+Any provided input, if found in the OSM data, will be downloaded.
 
 ## Simulation
 

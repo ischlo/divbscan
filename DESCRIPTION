@@ -1,0 +1,12 @@
+Package: divbscan
+Title: Workflow for the urban divbscan clustering
+Version: 0.0.0.9000
+Authors@R: 
+    person("Ivann", "Schlosser", , "ivann.schlosser.19@ucl.ac.uk", role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0004-4099-3198"))
+Description: Workflow with the clustering algorithm identifying neighbourhoods in an urban environment.
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2

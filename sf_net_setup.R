@@ -9,10 +9,38 @@ source('cppr_network_setup.R')
 ####
 
 # city <- py$city
+# 
 
-if(!file.exists(paste0('data/networks/',city,'_all.rds'))) {
+network_filepath <- paste0('data/sf_all_',city,'.gpkg')
 
-  network_filepath <- paste0('data/sf_all_',city,'.gpkg')
+if(file.exists(paste0('data/networks/',city,'_all.rds'))) {
+  
+  # print('File already present.\n Delete to recreate')
+  cli::cli_alert_info('Loading existing network data.')
+  network_ <- rlist::list.load(paste0('data/networks/',city,'_all.rds'))
+  sf_all <- network_$graph
+  sf_all_ch <- network_$contracted
+  cli::cli_alert_success("network loaded")
+  
+} else if(all(sapply(c(paste0(network_filename,"road_segments.csv")
+                       ,paste0(network_filename,"nodes.csv")),FUN = file.exists))){
+  
+  edges <- data.table::fread(paste0(network_filename,"road_segments.csv"))
+  nodes <- data.table::fread(paste0(network_filename,"nodes.csv"))
+  
+  sf_all <-  make_cppr_net(edges = edges
+                           ,nodes = nodes[!duplicated(id),])
+  
+  sf_all_ch <- sf_all |> cppRouting::cpp_contract()
+  
+  # nodes <- sf_nodes[,.(osmid,geom)]
+  
+  if(!dir.exists("data/networks")) dir.create("data/networks")
+  
+  list('graph'=sf_all
+       ,'contracted' = sf_all_ch) |> rlist::list.save(paste0('data/networks/',city,'_all.rds'))
+  
+} else if (file.exists(network_filepath)) {
   
   sf_nodes <- sf::st_read(network_filepath,layer='nodes') |> as.data.table()
   
@@ -51,7 +79,6 @@ if(!file.exists(paste0('data/networks/',city,'_all.rds'))) {
   list('graph'=sf_all
        ,'contracted' = sf_all_ch) |> rlist::list.save(paste0('data/networks/',city,'_all.rds'))
   
-  
 } else {
-  print('File already present.\n Delete to recreate')
+  cli::cli_abort("Cannot create network.")
 }

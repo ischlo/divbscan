@@ -43,14 +43,14 @@ get_lcc <- function(ways, graph_mode = "weak") {
   stopifnot("data.table" %in% class(ways)
             ,any("from" %in% colnames(ways), "u" %in% colnames(ways))
             ,any("to" %in% colnames(ways),"v" %in% colnames(ways))
-            )
+  )
   
   igraph_ways <- igraph::graph_from_data_frame(ways[,.(from,to)],directed = FALSE)
   
   if(igraph_ways |> igraph::is_connected(mode = graph_mode)) { 
     cat('Graph is connected') 
     return(ways) 
-    }
+  }
   
   nodes_comp <- igraph::components(igraph_ways,mode = graph_mode)
   
@@ -65,17 +65,21 @@ make_cppr_net <- function(edges,nodes = NULL, simple = TRUE, directed = FALSE) {
   # crs 4326 is expected
   # it's good if the data has also the variables from and to 
   # designating nodes that are connected, but not essential
+  
   edges <- edges |> 
     as.data.table()
-  try({nodes <- nodes |> 
-    as.data.table()})
+  try({
+    nodes <- nodes |> 
+      as.data.table()
+  })
   
   edges <- get_lcc(edges)
   
   # we don't have enough info on the edges to make a directed graph, so the assumption 
   # is taken that you can cycle in both direction on any edge
   graph <- edges[,.(from,to,length)] |> cppRouting::makegraph(directed = directed
-                               ,coords = nodes[,.(osmid,x,y)])
+                               ,coords = nodes[,.(id,lon,lat)])
+  
   if(simple == TRUE) {
     # simplifying the graph 
     graph <- graph |>

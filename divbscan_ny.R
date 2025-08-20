@@ -48,10 +48,10 @@ bbox <- bbox_of_interest[[city]]$bbox
 
 bbox <- c(bbox[["west"]],bbox[["south"]],bbox[["east"]],bbox[["north"]])
 
-# ny_bb <- bbox |> matrix(ncol = 2,byrow = FALSE)
-# ny_bb_sf <- Btoolkit::make_poly(ny_bb)
+ny_bb <- bbox |> matrix(ncol = 2,byrow = FALSE)
+ny_bb_sf <- Btoolkit::make_poly(ny_bb)
 
-ny_bb_sf <- osmdata::getbb("Greater London",format_out = "sf_polygon")
+# ny_bb_sf <- osmdata::getbb("Greater London",format_out = "sf_polygon")
 
 # tmap::tmap_mode('view')
 # ny_bb_sf |> tmap::qtm(fill.alpha = .3)
@@ -65,7 +65,14 @@ nrow(amenities)
 summary(amenities)
 
 # import the network: add network read from '.pbf' file.
-source('network_import.R')
+if(!all(sapply(c(paste0(network_filename,"road_segments.csv")
+                ,paste0(network_filename,"nodes.csv")),FUN = file.exists))) {
+  cli::cli_alert_info("Extracting network")
+  source('network_import.R')
+}
+
+source('sf_net_setup.R')
+
 cli::cli_alert_success('network set up \n')
 
 ###
@@ -77,18 +84,6 @@ cli::cli_alert_success('network set up \n')
 amenity_cat <- amenities |> pull(amenity) |> unique()
 
 s_max <- log(amenity_cat |> length())
-
-#### road network setup
-
-if(!file.exists(network_filename)) {
-  source('sf_net_setup.R')
-} else if (!exists('sf_all')) {
-  cli::cli_alert_info('loading network')
-  network_ <- rlist::list.load(paste0('data/networks/',city,'_all.rds'))
-  sf_all <- network_$graph
-  sf_all_ch <- network_$contracted
-  cli::cli_alert_success("network loaded")
-}
 
 #####
 if(!file.exists(hex_filename)){
@@ -125,7 +120,7 @@ if(!file.exists(hex_filename)){
     
   } else if(h3_res == 'custom') {
     cli::cli_alert_info('loading custom file london_hex.geojson')
-    # alternatively, use the modified grid from the original work: 
+    # alternatively, use the modified from the original work: 
     hexagons <- sf::st_read('data/london_hex.geojson') |> 
       sf::st_transform(4326)
     
@@ -359,7 +354,7 @@ hist(sf_grid$entropy[sf_grid$entropy > 0],breaks = 100)
 # min entropy to qualify for local max 
 summary(sf_grid$entropy[sf_grid$entropy >= 0])
 
-min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['Mean']]
+min_neighb_entropy <- summary(sf_grid$entropy[sf_grid$entropy >= 0])[['3rd Qu.']]
 
 # min_neighb_entropy <- 0.01
 
@@ -388,6 +383,7 @@ smoothing_isodist <- cppRouting::get_isochrone(sf_all
                                                ,from = sf_grid$node[local_max]
                                                ,lim = nn_neighbourhood*d)
 
+# ns <- smoothing_isodist[[1]]
 # when changing concavity run from here
 smoothing_multipoints <- parallel::mclapply(smoothing_isodist
                                             ,mc.cores = cores
@@ -551,9 +547,10 @@ leaf_map <- sf_grid_ |>
   # # local maxes
   leaflet::addPolygons(data=sf_grid[local_max,][smooth_local_max_,]
                        ,color = 'red'
-                       ,fillOpacity = 0
-                       ,opacity = 1
-                       ,weight = 3
+                       ,fillColor = "red"
+                       ,fillOpacity = .3
+                       ,opacity = .7
+                       ,weight = 2
                        ,popup =~paste0('Entropy: ',round(entropy,3)
                                        ,' Size: ',round(size),'\t'
                                        ,'ID: ',h3_index)
@@ -564,9 +561,9 @@ leaf_map <- sf_grid_ |>
   leaflet::addPolygons(data = neighb_
                        ,fillOpacity = 0
                        ,fillColor = 'darkblue'
-                       ,opacity = 1
+                       ,opacity = .7
                        ,color = 'black'
-                       ,weight = 2
+                       ,weight = 1
                        ,group = 'boundaries'
                        ,options = pathOptions(pane = "intermediate")) |>
   # layer controls
