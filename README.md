@@ -1,4 +1,8 @@
 # divbscan
+<!-- badges: start -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.16913432.svg)](https://doi.org/10.5281/zenodo.16913432)
+<!-- badges: end -->
+
 Ivann Schlosser
 
 This repo contains the code of a clustering algorithm for urban
@@ -91,7 +95,7 @@ recommended to start with a smaller one to see that everything works
 initially.
 
 Open the `params.R` script and in the first line of code assign to the
-`city` variable whichever city you chose. Default is `aix-en-provence`.
+`city` variable whichever city you chose. Default is `monaco`.
 
 Any provided input, if found in the OSM data, will be downloaded.
 

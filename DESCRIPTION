@@ -1,6 +1,6 @@
 Package: divbscan
 Title: Workflow for the urban divbscan clustering
-Version: 0.0.0.9000
+Version: 0.0.1
 Authors@R: 
     person("Ivann", "Schlosser", , "ivann.schlosser.19@ucl.ac.uk", role = c("aut", "cre"),
            comment = c(ORCID = "0009-0004-4099-3198"))
